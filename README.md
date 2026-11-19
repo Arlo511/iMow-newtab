@@ -8,21 +8,21 @@
 
 ## 界面预览
 
-主界面：搜索框、网站快捷方式、壁纸与分页点
+主界面：搜索框与常用网站网格
 
 ![主界面](./docs/screenshots/01-main.png)
 
-设置面板：壁纸源与搜索框设置
+设置面板：壁纸、搜索框与图标布局调节
 
-![设置面板](./docs/screenshots/02-settings-wallpaper.png)
+![设置面板](./docs/screenshots/02-settings.png)
 
-外观设置：网站图标与位置布局
+搜索引擎：切换或新增搜索引擎
 
-![外观设置](./docs/screenshots/03-settings-appearance.png)
+![搜索引擎](./docs/screenshots/03-search-engine.png)
 
-编辑网站：图标预览、图标大小、图标底色与「一键适配」
+更换壁纸：点右下角小猫换一张
 
-![编辑网站](./docs/screenshots/04-edit-website.png)
+![更换壁纸](./docs/screenshots/04-change-wallpaper.png)
 
 ## 主要功能
 
