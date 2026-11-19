@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "iMow新标签页",
+  "version": "1.0.1",
+  "description": "一个功能丰富的新标签页扩展，支持自定义网站、背景和搜索引擎",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "activeTab",
+    "downloads"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*",
+    "https://images.unsplash.com/*",
+    "https://picsum.photos/*",
+    "https://*.picsum.photos/*",
+    "https://www.bing.com/*",
+    "https://imgapi.cn/*",
+    "https://*.33xp.cn/*",
+    "https://wp.upx8.com/*",
+    "https://cdn-hsyq-static.shanhutech.cn/*",
+    "http://cdn-hsyq-static.shanhutech.cn/*",
+    "https://pic.ltywl.top/*",
+    "https://*.mwm.moe/*",
+    "https://*.alcy.cc/*",
+    "https://*.paugram.com/*",
+    "https://i.loli.net/*",
+    "https://*.xjh.me/*",
+    "https://*.suyanw.cn/*",
+    "https://*.loliapi.com/*",
+    "https://*.loliapi.cn/*",
+    "https://*.iloli.love/*",
+    "https://*.mint.ac.cn/*",
+    "https://*.521799.xyz/*",
+    "https://*.544521.xyz/*",
+    "https://*.20240828.xyz/*",
+    "https://www.google.com/*",
+    "https://icons.duckduckgo.com/*",
+    "https://favicon.yandex.net/*",
+    "https://api.allorigins.win/*"
+  ],
+  "icons": {
+    "32": "icons/icon_32.png",
+    "48": "icons/icon_48.png",
+    "128": "icons/icon_128.png"
+  }
+}

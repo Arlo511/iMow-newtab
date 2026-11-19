@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iMow新标签页</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Favicon 配置 - 使用多种格式和尺寸确保兼容性 -->
+    <link rel="icon" href="icons/icon_32.png" sizes="32x32" type="image/png">
+    <link rel="icon" href="icons/icon_48.png" sizes="48x48" type="image/png">
+    <link rel="icon" href="icons/icon_128.png" sizes="128x128" type="image/png">
+    <link rel="shortcut icon" href="icons/icon_32.png" type="image/png">
+    <link rel="apple-touch-icon" href="icons/icon_128.png">
+    <meta name="msapplication-TileImage" content="icons/icon_128.png">
+    <meta name="msapplication-TileColor" content="#4285f4">
+    <style>
+        /* 全局滑块样式覆盖 - 最高优先级（统一为轻量轨道 + 白色描边滑块） */
+        html body input[type="range"] {
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+            width: 100% !important;
+            height: 6px !important;
+            border-radius: 999px !important;
+            background: rgba(15, 23, 42, 0.12) !important;
+            outline: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 12px 0 !important;
+            box-shadow: none !important;
+            cursor: pointer !important;
+        }
+
+        html body input[type="range"]::-webkit-slider-runnable-track {
+            -webkit-appearance: none !important;
+            appearance: none !important;
+            width: 100% !important;
+            height: 6px !important;
+            border-radius: 999px !important;
+            background: transparent !important;
+            border: none !important;
+        }
+
+        html body input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none !important;
+            appearance: none !important;
+            width: 18px !important;
+            height: 18px !important;
+            border-radius: 50% !important;
+            background: #ffffff !important;
+            cursor: pointer !important;
+            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.32) !important;
+            border: 2px solid #5b8cff !important;
+            padding: 0 !important;
+            position: relative !important;
+            top: -6px !important;
+            margin-top: 0 !important;
+            transition: transform 0.18s ease, box-shadow 0.18s ease !important;
+        }
+
+        html body input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(0.94) !important;
+        }
+
+        html body input[type="range"]::-moz-range-track {
+            -moz-appearance: none !important;
+            width: 100% !important;
+            height: 6px !important;
+            border-radius: 999px !important;
+            background: rgba(15, 23, 42, 0.12) !important;
+            border: none !important;
+        }
+
+        html body input[type="range"]::-moz-range-thumb {
+            -moz-appearance: none !important;
+            width: 18px !important;
+            height: 18px !important;
+            border-radius: 50% !important;
+            background: #ffffff !important;
+            cursor: pointer !important;
+            border: 2px solid #5b8cff !important;
+            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.32) !important;
+        }
+
+        html body input[type="range"]:hover::-webkit-slider-thumb {
+            transform: scale(1.12) !important;
+            box-shadow: 0 4px 14px rgba(59, 91, 219, 0.42) !important;
+        }
+
+        html body input[type="range"]:hover::-moz-range-thumb {
+            transform: scale(1.12) !important;
+            box-shadow: 0 4px 14px rgba(59, 91, 219, 0.42) !important;
+        }
+    </style>
+    <!-- 首帧壁纸：body 渲染前应用缓存壁纸，消除刷新闪屏（MV3 扩展页不允许内联脚本，故独立文件） -->
+    <script src="early-bg.js"></script>
+</head>
+<body>
+    <!-- 背景图 -->
+    <div class="background" id="background"></div>
+    
+    <!-- 设置按钮 -->
+    <button class="settings-btn" id="settingsBtn">⚙️</button>
+    
+    <!-- 主内容容器 -->
+    <div class="container">
+        
+        <!-- 全新设计的搜索框 -->
+        <div class="new-search-box">
+            <div class="search-container">
+                <!-- 搜索引擎选择器 -->
+                <div class="search-engine-selector">
+                    <img id="currentEngineIcon" src="./icons/search-engines/bing.png" alt="搜索引擎图标" class="engine-icon">
+                </div>
+                
+                <!-- 搜索输入区域 -->
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索...">
+                
+                <!-- 搜索按钮 -->
+                <button id="searchBtn" class="search-button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </div>
+            <!-- 搜索引擎下拉列表 - 移动到search-container外部，确保与搜索框左对齐 -->
+            <div id="engineDropdown" class="engine-dropdown">
+                <!-- 搜索引擎列表将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 网站快捷方式 -->
+        <div id="websitesGrid" class="websites-grid"></div>
+        
+    </div>
+    
+    <!-- 设置弹窗 -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content settings-modal-content">
+            <!-- 顶部导航 -->
+            <div class="settings-header">
+                <div class="settings-nav-controls">
+                    <button id="settingsBackBtn" class="settings-back-btn" style="display: none;">
+                        ← 返回
+                    </button>
+                </div>
+                <h2 id="settingsTitle" class="settings-title">设置</h2>
+                <span class="close" id="closeSettings" role="button" aria-label="关闭设置">
+                    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+                        <path d="M3 3 L13 13 M13 3 L3 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                    </svg>
+                </span>
+            </div>
+            
+            <!-- 主设置内容 -->
+            <div id="settings-main-content" class="settings-content active">
+                <!-- 壁纸 -->
+                <div class="setting-group">
+                    <h3>壁纸</h3>
+
+                    <div class="wallpaper-preview">
+                        <div class="wallpaper-thumbnail-wrapper">
+                            <img id="currentWallpaperThumbnail" alt="当前壁纸" class="wallpaper-thumbnail" style="display: none;">
+                            <button id="downloadWallpaperBtn" class="download-wallpaper-btn"></button>
+                        </div>
+                        <div class="background-options">
+                            <label for="bgFile" class="upload-wallpaper-label">上传壁纸</label>
+                            <input type="file" id="bgFile" accept="image/*" style="display: none;">
+                            <button id="removeBg" class="remove-btn">移除背景</button>
+                        </div>
+                    </div>
+
+                    <div class="setting-list">
+                        <div class="setting-block">
+                            <div class="setting-block-head">
+                                <label for="wallpaperSource" class="setting-label">壁纸源</label>
+                                <button id="editWallpaperSourceBtn" class="edit-btn setting-small-btn">编辑</button>
+                            </div>
+                            <select id="wallpaperSource"></select>
+                            <div id="wallpaperSourceStatus" class="wallpaper-source-status"></div>
+                        </div>
+                        <div id="customWallpaperSource" class="setting-block" style="display: none;">
+                            <label for="customWallpaperUrl" class="setting-label">自定义 API 地址</label>
+                            <input type="text" id="customWallpaperUrl" placeholder="https://...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 搜索框 -->
+                <div class="setting-group">
+                    <h3>搜索框</h3>
+                    <p class="setting-group-hint">宽度、透明度为实际百分比；圆角、高度以默认尺寸为 100%</p>
+                    <div class="setting-list">
+                        <div class="setting-line">
+                            <span class="setting-label">宽度</span>
+                            <div class="setting-line-control">
+                                <input type="range" id="searchBoxWidth" min="20" max="100" value="35">
+                                <span id="widthValue" class="setting-value">35%</span>
+                            </div>
+                        </div>
+                        <div class="setting-line">
+                            <span class="setting-label">高度</span>
+                            <div class="setting-line-control">
+                                <input type="range" id="searchBoxHeight" min="40" max="100" value="65">
+                                <span id="heightValue" class="setting-value">100%</span>
+                            </div>
+                        </div>
+                        <div class="setting-line">
+                            <span class="setting-label">圆角</span>
+                            <div class="setting-line-control">
+                                <input type="range" id="searchBoxRadius" min="0" max="40" value="40">
+                                <span id="radiusValue" class="setting-value">100%</span>
+                            </div>
+                        </div>
+                        <div class="setting-line">
+                            <span class="setting-label">透明度</span>
+                            <div class="setting-line-control">
+                                <input type="range" id="searchBoxOpacity" min="30" max="100" value="30">
+                                <span id="opacityValue" class="setting-value">30%</span>
+                            </div>
+                        </div>
+                        <div class="setting-line">
+                            <div class="setting-line-label">
+                                <span class="setting-label">模糊度</span>
+                                <span class="setting-label-note">0 = 无模糊，独立于透明度</span>
+                            </div>
+                            <div class="setting-line-control">
+                                <input type="range" id="searchBoxBlur" min="0" max="30" step="1" value="22">
+                                <span id="blurValue" class="setting-value">22px</span>
+                            </div>
+                        </div>
+                        <div class="setting-line">
+                            <div class="setting-line-label">
+                                <span class="setting-label">上下位置</span>
+                                <span class="setting-label-note">−10% ~ +30%，正值为下</span>
+                            </div>
+                            <div class="setting-line-control">
+                                <input type="range" id="searchOffsetY" min="-10" max="30" step="0.1" value="0">
+                                <span id="searchOffsetYValue" class="setting-value">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 网站图标 -->
+                <div class="setting-group">
+                    <h3>网站图标</h3>
+                    <p class="setting-group-hint">图标大小以默认尺寸为 100%；上移量受搜索框限制</p>
+
+                    <button type="button" id="addWebsiteFromSettings" class="setting-add-btn">+ 添加网站</button>
+
+                    <div class="setting-list">
+                        <div class="setting-line">
+                            <span class="setting-label">图标大小</span>
+                            <div class="setting-line-control">
+                                <input type="range" id="websiteIconSize" min="80" max="250" value="120">
+                                <span id="iconSizeValue" class="setting-value">100%</span>
+                            </div>
+                        </div>
+                        <div class="setting-line">
+                            <div class="setting-line-label">
+                                <span class="setting-label">上下位置</span>
+                                <span class="setting-label-note">−10% ~ +30%</span>
+                            </div>
+                            <div class="setting-line-control">
+                                <input type="range" id="iconsOffsetY" min="-10" max="30" step="0.1" value="0">
+                                <span id="iconsOffsetYValue" class="setting-value">0%</span>
+                            </div>
+                        </div>
+                        <div class="setting-line setting-line--switch">
+                            <span class="setting-label">显示文字</span>
+                            <label class="rect-toggle-switch" style="display: inline-flex; align-items: center; cursor: pointer; position: relative;">
+                                <input type="checkbox" id="showWebsiteNames" checked style="display: none;">
+                                <span class="toggle-track" style="width: 50px; height: 24px; background-color: #ccc; border-radius: 4px; display: inline-block; transition: background-color 0.3s;"></span>
+                                <span class="toggle-thumb" style="width: 20px; height: 20px; background-color: white; border-radius: 2px; display: inline-block; position: absolute; left: 2px; top: 2px; transition: transform 0.3s, background-color 0.3s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);"></span>
+                            </label>
+                        </div>
+                        <div class="setting-line">
+                            <span class="setting-label">文字大小</span>
+                            <div class="setting-line-control">
+                                <input type="range" id="websiteNameSize" min="8" max="24" value="14">
+                                <span id="nameSizeValue" class="setting-value">14px</span>
+                            </div>
+                        </div>
+                        <div class="setting-line setting-line--switch">
+                            <span class="setting-label">文字颜色</span>
+                            <input type="color" id="websiteNameColor" value="#ffffff">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 位置与布局 -->
+                <div class="setting-group">
+                    <h3>位置与布局</h3>
+                    <p class="setting-group-hint">间距以默认值为 100%</p>
+                    <div class="setting-list">
+                        <div class="setting-block">
+                            <span class="setting-label">布局预设</span>
+                            <div class="setting-preset-rows">
+                                <div class="layout-preset-row">
+                                    <button type="button" class="layout-preset-btn" data-rows="2" data-columns="5">2×5</button>
+                                    <button type="button" class="layout-preset-btn" data-rows="2" data-columns="6">2×6</button>
+                                    <button type="button" class="layout-preset-btn" data-rows="2" data-columns="7">2×7</button>
+                                    <button type="button" class="layout-preset-btn" data-rows="2" data-columns="8">2×8</button>
+                                </div>
+                                <div class="layout-preset-row">
+                                    <button type="button" class="layout-preset-btn" data-rows="3" data-columns="5">3×5</button>
+                                    <button type="button" class="layout-preset-btn" data-rows="3" data-columns="6">3×6</button>
+                                    <button type="button" class="layout-preset-btn" data-rows="3" data-columns="7">3×7</button>
+                                    <button type="button" id="customLayoutBtn" class="layout-preset-btn">自定义</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-block">
+                            <span class="setting-label">翻页动画</span>
+                            <div class="setting-preset-rows">
+                                <div class="layout-preset-row">
+                                    <button type="button" class="page-transition-btn active" data-transition="slide">水平滑动</button>
+                                    <button type="button" class="page-transition-btn" data-transition="fade">交叉淡入</button>
+                                </div>
+                                <div class="layout-preset-row">
+                                    <button type="button" class="page-transition-btn" data-transition="stack">上下堆叠</button>
+                                    <button type="button" class="page-transition-btn" data-transition="none">无动画</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-line">
+                            <span class="setting-label">列间距</span>
+                            <div class="setting-line-control">
+                                <input type="range" id="websiteColumnGap" min="1" max="200" value="105">
+                                <span id="websiteColumnGapValue" class="setting-value">100%</span>
+                            </div>
+                        </div>
+                        <div class="setting-line">
+                            <span class="setting-label">行间距</span>
+                            <div class="setting-line-control">
+                                <input type="range" id="websiteRowGap" min="1" max="200" value="58">
+                                <span id="websiteRowGapValue" class="setting-value">100%</span>
+                            </div>
+                        </div>
+                        <div class="setting-line setting-line--switch">
+                            <div class="setting-line-label">
+                                <span class="setting-label">位置偏移</span>
+                                <span class="setting-label-note">搜索框与网站图标</span>
+                            </div>
+                            <button type="button" id="resetLayoutOffsetsBtn" class="setting-small-btn setting-reset-btn">重置</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 打开方式 -->
+                <div class="setting-group">
+                    <h3>打开方式</h3>
+                    <div class="setting-list">
+                        <div class="setting-line setting-line--switch">
+                            <span class="setting-label">搜索结果在新标签页打开</span>
+                            <label class="rect-toggle-switch" style="display: inline-flex; align-items: center; cursor: pointer; position: relative;">
+                                <input type="checkbox" id="openSearchInNewTab" style="display: none;">
+                                <span class="toggle-track" style="width: 50px; height: 24px; background-color: #ccc; border-radius: 4px; display: inline-block; transition: background-color 0.3s;"></span>
+                                <span class="toggle-thumb" style="width: 20px; height: 20px; background-color: white; border-radius: 2px; display: inline-block; position: absolute; left: 2px; top: 2px; transition: transform 0.3s, background-color 0.3s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);"></span>
+                            </label>
+                        </div>
+                        <div class="setting-line setting-line--switch">
+                            <span class="setting-label">网站在新标签页打开</span>
+                            <label class="rect-toggle-switch" style="display: inline-flex; align-items: center; cursor: pointer; position: relative;">
+                                <input type="checkbox" id="openWebsiteInNewTab" style="display: none;">
+                                <span class="toggle-track" style="width: 50px; height: 24px; background-color: #ccc; border-radius: 4px; display: inline-block; transition: background-color 0.3s;"></span>
+                                <span class="toggle-thumb" style="width: 20px; height: 20px; background-color: white; border-radius: 2px; display: inline-block; position: absolute; left: 2px; top: 2px; transition: transform 0.3s, background-color 0.3s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 数据管理 -->
+                <div class="setting-group">
+                    <h3>数据管理</h3>
+                    <p class="setting-group-hint">导出内容包含全部设置与网站数据；恢复默认会清除自定义设置</p>
+                    <div class="setting-list">
+                        <div class="setting-line setting-line--switch">
+                            <span class="setting-label">导出备份</span>
+                            <button id="backupDataBtn" class="backup-data-btn data-action-btn">导出</button>
+                        </div>
+                        <div class="setting-line setting-line--switch">
+                            <span class="setting-label">导入备份</span>
+                            <button id="importDataBtn" class="import-data-btn data-action-btn">导入</button>
+                            <input type="file" id="importDataFile" accept=".json" style="display: none;">
+                        </div>
+                        <div class="setting-line setting-line--switch">
+                            <span class="setting-label">恢复默认</span>
+                            <button id="resetToDefaultsBtn" class="reset-defaults-btn data-action-btn">恢复</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 网站编辑内容 -->
+            <div id="settings-website-content" class="settings-content">
+                <form id="websiteForm" class="panel-form">
+                    <div class="setting-group">
+                        <h3>基本信息</h3>
+                        <div class="setting-list">
+                            <div class="setting-line">
+                                <label class="setting-label" for="websiteUrl">网址</label>
+                                <div class="setting-line-control">
+                                    <input type="url" id="websiteUrl" placeholder="https://example.com" required>
+                                </div>
+                            </div>
+                            <div class="setting-line">
+                                <label class="setting-label" for="websiteName">名称</label>
+                                <div class="setting-line-control">
+                                    <input type="text" id="websiteName" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="urlStatus" class="panel-status"></div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>图标</h3>
+                        <div class="setting-list">
+                            <div class="setting-line">
+                                <label class="setting-label" for="websiteIcon">图标地址</label>
+                                <div class="setting-line-control">
+                                    <input type="text" id="websiteIcon" placeholder="图标 URL">
+                                </div>
+                            </div>
+                            <div class="setting-line">
+                                <span class="setting-label">获取方式</span>
+                                <div class="setting-line-control panel-btn-row">
+                                    <button type="button" id="uploadIconBtn" class="panel-mini-btn">上传图标</button>
+                                    <input type="file" id="iconFile" accept="image/*" style="display: none;">
+                                    <button type="button" id="fetchIconBtn" class="panel-mini-btn panel-mini-btn--accent">自动抓取</button>
+                                </div>
+                            </div>
+                            <div class="setting-line">
+                                <span class="setting-label">图标大小</span>
+                                <div class="setting-line-control">
+                                    <input type="range" id="iconSize" min="20" max="200" value="50">
+                                    <span id="currentIconSize" class="setting-value">50%</span>
+                                </div>
+                            </div>
+                            <div class="setting-line">
+                                <span class="setting-label">图标底色</span>
+                                <div class="setting-line-control panel-bg-row">
+                                    <input type="color" id="iconBgColor" class="panel-color-input" value="#ffffff">
+                                    <span id="currentBgColor" class="panel-code">transparent</span>
+                                    <button type="button" id="setTransparentBtn" class="panel-mini-btn">透明</button>
+                                    <button type="button" id="adaptIconBgBtn" class="panel-mini-btn">一键适配</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-preview">
+                            <div class="icon-preview" id="websiteIconPreview" role="img" aria-label="图标预览"></div>
+                        </div>
+                        <p class="panel-hint">预览固定 72×72，仅显示图标本身；图标大小滑块只影响主界面</p>
+                        <div id="iconStatus" class="panel-status"></div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">保存</button>
+                        <button type="button" class="cancel-btn" id="cancelAddWebsite">取消</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 自定义布局内容 -->
+            <div id="settings-custom-layout-content" class="settings-content">
+                <form id="customLayoutForm">
+                    <div class="form-group">
+                        <label for="customRows">行数：</label>
+                        <input type="number" id="customRows" min="1" max="5" value="2" required>
+                        <small style="font-size: 12px; color: #999; display: block; margin-top: 3px;">范围：1-5</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="customColumns">每行网站数量：</label>
+                        <input type="number" id="customColumns" min="3" max="8" value="5" required>
+                        <small style="font-size: 12px; color: #999; display: block; margin-top: 3px;">范围：3-8</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="submit-btn" id="saveCustomLayout">保存</button>
+                        <button type="button" class="cancel-btn" id="cancelCustomLayout">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 添加搜索引擎弹窗 -->
+    <div id="addEngineModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeAddEngine">&times;</span>
+            <h2>添加搜索引擎</h2>
+            <form id="engineForm" class="panel-form">
+                <div class="setting-group">
+                    <h3>基本信息</h3>
+                    <div class="setting-list">
+                        <div class="setting-line">
+                            <div class="setting-line-label">
+                                <label class="setting-label" for="engineUrl">搜索地址</label>
+                                <span class="setting-label-note">{} 为关键词</span>
+                            </div>
+                            <div class="setting-line-control">
+                                <input type="text" inputmode="url" id="engineUrl" placeholder="https://example.com/search?q={}" required>
+                            </div>
+                        </div>
+                        <div class="setting-line">
+                            <label class="setting-label" for="engineName">名称</label>
+                            <div class="setting-line-control">
+                                <input type="text" id="engineName" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="engineUrlStatus" class="panel-status"></div>
+                </div>
+
+                <div class="setting-group">
+                    <h3>图标</h3>
+                    <div class="setting-list">
+                        <div class="setting-line">
+                            <label class="setting-label" for="engineIcon">图标地址</label>
+                            <div class="setting-line-control">
+                                <input type="text" inputmode="url" id="engineIcon" placeholder="图标 URL">
+                            </div>
+                        </div>
+                        <div class="setting-line">
+                            <span class="setting-label">获取方式</span>
+                            <div class="setting-line-control panel-btn-row">
+                                <button type="button" id="uploadEngineIconBtn" class="panel-mini-btn">上传图标</button>
+                                <input type="file" id="engineIconFile" accept="image/*" style="display: none;">
+                                <button type="button" id="fetchEngineIconBtn" class="panel-mini-btn panel-mini-btn--accent">自动获取</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-preview">
+                        <div class="icon-preview" id="engineIconPreview"></div>
+                    </div>
+                    <p class="panel-hint">支持 JPG、PNG、ICO、SVG，建议 24×24 或 48×48</p>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">添加</button>
+                    <button type="button" class="cancel-btn" id="cancelAddEngine">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 编辑壁纸源弹窗 -->
+    <div id="editWallpaperSourceModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeEditWallpaperSource">&times;</span>
+            <h2>编辑壁纸源</h2>
+            <div id="wallpaperSourcesList">
+                <!-- 壁纸源列表将通过JavaScript动态生成 -->
+            </div>
+            <div class="form-actions" style="margin-top: 20px;">
+                <button type="button" class="cancel-btn" id="cancelEditWallpaperSource">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 单个壁纸源编辑弹窗 -->
+    <div id="singleWallpaperSourceEditModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeSingleWallpaperSourceEdit">&times;</span>
+            <h2>编辑壁纸源</h2>
+            <form id="singleWallpaperSourceEditForm">
+                <div class="form-group">
+                    <label for="editSourceName">名称:</label>
+                    <input type="text" id="editSourceName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editSourceUrl">URL:</label>
+                    <input type="url" id="editSourceUrl" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">保存</button>
+                    <button type="button" class="cancel-btn" id="cancelSingleWallpaperSourceEdit">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 添加新壁纸源弹窗 -->
+    <div id="addWallpaperSourceModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeAddWallpaperSource">&times;</span>
+            <h2>添加壁纸源</h2>
+            <form id="addWallpaperSourceForm">
+                <div class="form-group">
+                    <label for="newSourceName">名称:</label>
+                    <input type="text" id="newSourceName" placeholder="输入壁纸源名称" required>
+                </div>
+                <div class="form-group">
+                    <label for="newSourceUrl">URL:</label>
+                    <input type="url" id="newSourceUrl" placeholder="输入壁纸源URL" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">添加</button>
+                    <button type="button" class="cancel-btn" id="cancelAddWallpaperSource">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 小猫换壁纸按钮 -->
+    <button class="cat-wallpaper-btn" id="catWallpaperBtn" type="button" title="换个随机壁纸" aria-label="换个随机壁纸">
+        <img id="catIcon" src="icons/cat-icons/cat.svg" alt="" width="56" height="56">
+    </button>
+    
+    <!-- 脚本引用 -->
+    <script src="script.js"></script>
+</body>
+</html>
