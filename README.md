@@ -6,6 +6,24 @@
 - 当前版本：**1.0.1**
 - 版本发布记录：<https://github.com/Arlo511/iMow-newtab/releases>
 
+## 界面预览
+
+主界面：搜索框、网站快捷方式、壁纸与分页点
+
+![主界面](./docs/screenshots/01-main.png)
+
+设置面板：壁纸源与搜索框设置
+
+![设置面板](./docs/screenshots/02-settings-wallpaper.png)
+
+外观设置：网站图标与位置布局
+
+![外观设置](./docs/screenshots/03-settings-appearance.png)
+
+编辑网站：图标预览、图标大小、图标底色与「一键适配」
+
+![编辑网站](./docs/screenshots/04-edit-website.png)
+
 ## 主要功能
 
 ### 搜索
